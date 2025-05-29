@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Defender - Enhanced</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="menuOverlay" class="menu-overlay active">
+        <div class="menu">
+            <h1>🚀 COSMIC DEFENDER</h1>
+            <p>Defend your space station from waves of alien invaders! Place towers, upgrade them, and survive the cosmic onslaught.</p>
+            <p><strong>How to Play:</strong><br>
+            • Select towers from the sidebar.<br>
+            • Click on the game area to place them.<br>
+            • Click placed towers to select & upgrade.<br>
+            • Start waves and defend your base.<br>
+            • Don't let enemies reach the end!</p>
+            <button class="menu-button" onclick="startGame()">🎮 Start Game</button>
+        </div>
+    </div>
+
+    <div id="modalOverlay" class="modal-overlay">
+        <div class="modal-content">
+            <h1 id="modalTitle">Game Over</h1>
+            <p id="modalMessage">You survived X waves!</p>
+            <button id="modalButton1" class="modal-button" onclick="restartGame()">🔄 Play Again</button>
+            <button id="modalButton2" class="modal-button" onclick="showMenu()">📋 Main Menu</button>
+        </div>
+    </div>
+
+    <div id="gameUI" class="hidden">
+        <div class="game-header">
+            <div class="stats">
+                <div class="stat"><div class="stat-icon health-icon"></div><span>Health: <span id="health">100</span></span></div>
+                <div class="stat"><div class="stat-icon credits-icon"></div><span>Credits: <span id="credits">150</span></span></div>
+                <div class="stat"><div class="stat-icon wave-icon"></div><span>Wave: <span id="wave">1</span> / <span id="finalWaveDisplay">--</span></span></div>
+            </div>
+            <div id="waveTimer">Ready to start!</div>
+        </div>
+
+        <div class="game-container">
+            <div class="game-canvas">
+                <canvas id="gameCanvas"></canvas>
+            </div>
+            
+            <div class="sidebar">
+                <h3>🏗️ BUILD TOWERS</h3>
+                <div class="tower-shop">
+                    </div>
+
+                <div class="tower-info-panel hidden" id="selectedTowerPanel">
+                    <h4 id="selectedTowerName">Selected Tower</h4>
+                    <div class="tower-stat">Level: <strong id="selectedTowerLevel">1</strong></div>
+                    <div class="tower-stat">Damage: <strong id="selectedTowerDamage">0</strong></div>
+                    <div class="tower-stat">Range: <strong id="selectedTowerRange">0</strong></div>
+                    <div class="tower-stat">Fire Rate: <strong id="selectedTowerFireRate">0</strong></div>
+                    <button class="upgrade-button" id="upgradeTowerBtn" onclick="upgradeSelectedTower()">
+                        Upgrade (<span id="upgradeTowerCost">0</span> <span class="credits-icon" style="display: inline-block; vertical-align: middle; width:10px; height:10px;"></span>)
+                    </button>
+                    <div class="action-group">
+                        <button class="action-button" id="sellTowerBtn" onclick="sellSelectedTower()">
+                            Sell (<span id="sellTowerRefund">0</span> <span class="credits-icon" style="display: inline-block; vertical-align: middle; width:10px; height:10px;"></span>)
+                        </button>
+                        <button class="action-button" id="relocateTowerBtn" onclick="relocateSelectedTower()">
+                            Relocate (<span id="relocateTowerCost">0</span> <span class="credits-icon" style="display: inline-block; vertical-align: middle; width:10px; height:10px;"></span>)
+                        </button>
+                    </div>
+                    <div class="ability-section hidden" id="abilitySection">
+                        <h4>✨ ABILITY</h4>
+                        <button class="ability-button" id="activateAbilityBtn" onclick="activateSelectedTowerAbility()">
+                            <div class="ability-name" id="abilityName"></div>
+                            <div class="ability-cost" id="abilityCost"></div>
+                            <div class="ability-cooldown" id="abilityCooldown"></div>
+                        </button>
+                    </div>
+                </div>
+                
+                <h3>⚙️ CONTROLS</h3>
+                <div class="game-controls">
+                    <button class="control-button start-wave" onclick="skipWaveCountdown()" id="nextWaveBtn">🌊 Start Wave</button>
+                    <div class="control-group">
+                        <button class="action-button" onclick="togglePauseGame()" id="pauseBtn">⏸️ Pause</button>
+                        <button class="action-button" onclick="toggleMute()" id="muteBtn">🔊 Mute</button>
+                    </div>
+                    <div class="control-group">
+                        <button class="action-button" onclick="setGameSpeed(1)" id="speed1xBtn">1x Speed</button>
+                        <button class="action-button" onclick="setGameSpeed(2)" id="speed2xBtn">2x Speed</button>
+                    </div>
+                    <button class="control-button menu-btn" onclick="showMenu()">📋 Menu</button>
+                </div>
+
+                <div class="game-info-box">
+                    <h4>ℹ️ Status</h4>
+                    <div id="statusMessage">Select a tower to build or click a placed tower to upgrade.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="globals.js"></script>
+    <script src="classes.js"></script>
+    <script src="utils.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>

@@ -1,0 +1,290 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Courier New', monospace;
+    background: linear-gradient(135deg, #0a0a2e, #16213e, #1a1a3e);
+    color: white;
+    overflow: hidden;
+    height: 100vh; 
+    display: flex;
+    flex-direction: column;
+}
+
+#gameUI {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; 
+}
+
+.game-header {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 8px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #00ffff;
+    height: 60px;
+    flex-shrink: 0; 
+}
+
+.stats {
+    display: flex;
+    gap: 20px;
+}
+
+.stat {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: white;
+    font-size: 13px;
+}
+
+.stat-icon {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+}
+
+.health-icon { background: #ff4444; }
+.credits-icon { background: #ffdd44; }
+.wave-icon { background: #44ff44; }
+
+#waveTimer {
+    font-size: 13px;
+    color: #00ffff;
+    min-width: 200px; 
+    text-align: right;
+}
+
+.game-container {
+    display: flex;
+    flex-grow: 1; 
+    overflow: hidden; 
+}
+
+.game-canvas {
+    flex: 1; 
+    background: radial-gradient(circle at 30% 20%, rgba(0, 255, 255, 0.05), transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(255, 0, 255, 0.05), transparent 50%),
+                #070725; 
+    position: relative;
+    cursor: crosshair;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.sidebar {
+    width: 250px;
+    background: rgba(0, 0, 0, 0.9);
+    border-left: 2px solid #00ffff;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+}
+
+.sidebar h3, .sidebar h4 {
+    color: #00ffff;
+    margin-bottom: 6px;
+    text-shadow: 0 0 5px #00ffff;
+}
+
+.tower-shop, .game-controls, .tower-info-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tower-button, .control-button, .upgrade-button, .action-button {
+    background: linear-gradient(135deg, #1a1a3e, #2a2a5e);
+    border: 1px solid #00ffff;
+    color: white;
+    padding: 8px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-family: inherit;
+    font-size: 11px;
+    transition: all 0.2s ease;
+    text-align: left;
+}
+
+.tower-button:hover:not(:disabled),
+.control-button:hover:not(:disabled),
+.upgrade-button:hover:not(:disabled),
+.action-button:hover:not(:disabled) {
+    border-color: #ffff00;
+    background: linear-gradient(135deg, #2a2a5e, #3a3a7e);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 255, 255, 0.3);
+}
+
+.tower-button:disabled, .control-button:disabled, .upgrade-button:disabled, .action-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: #222;
+    border-color: #555;
+}
+
+.tower-button.selected {
+    border-color: #ffff00;
+    background: linear-gradient(135deg, #3a3a7e, #4a4a9e);
+    box-shadow: 0 0 10px #ffff00;
+}
+
+.tower-name { font-weight: bold; color: #00ffff; margin-bottom: 2px; }
+.tower-cost, .upgrade-cost { color: #ffdd44; font-size: 10px; }
+.tower-desc, .tower-stat { color: #aaa; font-size: 10px; margin-top: 2px; }
+.tower-stat strong { color: #ccc; }
+
+.game-controls .control-group {
+    display: flex;
+    gap: 6px;
+}
+.game-controls .control-group .action-button {
+    flex-grow: 1;
+    text-align: center;
+}
+
+.control-button.start-wave { background: linear-gradient(135deg, #44ff44, #33cc33); color: #000; }
+.control-button.start-wave:hover:not(:disabled) { background: linear-gradient(135deg, #66ff66, #55ee55); }
+
+.control-button.menu-btn { background: linear-gradient(135deg, #666, #444); }
+.control-button.menu-btn:hover:not(:disabled) { background: linear-gradient(135deg, #777, #555); }
+
+.game-info-box {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 11px;
+    line-height: 1.3;
+    border: 1px solid #00ffff33;
+}
+.menu-overlay, .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.92);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+}
+.menu-overlay.active, .modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease;
+}
+
+.menu, .modal-content {
+    background: linear-gradient(145deg, #16213e, #1f2c4a);
+    border: 2px solid #00ffff;
+    border-radius: 12px;
+    padding: 25px 35px;
+    text-align: center;
+    max-width: 480px;
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+.menu-overlay.active .menu, .modal-overlay.active .modal-content {
+    transform: scale(1);
+}
+
+.menu h1, .modal-content h1 {
+    color: #00ffff;
+    margin-bottom: 12px;
+    font-size: 1.8em;
+    text-shadow: 0 0 15px #00ffff;
+}
+ .modal-content h2 {
+    color: #ffff00;
+    margin-bottom: 10px;
+    font-size: 1.5em;
+}
+
+.menu p, .modal-content p {
+    margin-bottom: 18px;
+    line-height: 1.5;
+    color: #bbb;
+    font-size: 13px;
+}
+
+.menu-button, .modal-button {
+    background: linear-gradient(135deg, #00ffff, #0099cc);
+    border: none;
+    color: #0a0a2e;
+    padding: 10px 20px;
+    margin: 6px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-family: inherit;
+    font-weight: bold;
+    font-size: 13px;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+}
+
+.menu-button:hover, .modal-button:hover {
+    background: linear-gradient(135deg, #33ffff, #00ccff);
+    transform: scale(1.03);
+    box-shadow: 0 0 15px #00ffff88;
+}
+
+.tower-info-panel {
+    border-top: 1px dashed #00ffff55;
+    padding-top: 10px;
+    margin-top: 10px;
+}
+.tower-info-panel .tower-stat {
+    font-size: 11px;
+}
+.tower-info-panel .action-group {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+.tower-info-panel .action-group .action-button {
+    flex-grow: 1;
+    text-align: center;
+}
+.ability-button {
+    background: linear-gradient(135deg, #8844ff, #6600cc); 
+    border: 1px solid #cc00ff;
+    color: white;
+    padding: 8px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-family: inherit;
+    font-size: 11px;
+    transition: all 0.2s ease;
+    text-align: left;
+}
+.ability-button:hover:not(:disabled) {
+    border-color: #ff00ff;
+    background: linear-gradient(135deg, #9955ff, #7711dd);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(204, 0, 255, 0.3);
+}
+.ability-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: #222;
+    border-color: #555;
+}
+.ability-name { font-weight: bold; color: #cc00ff; margin-bottom: 2px; }
+.ability-cost, .ability-cooldown { color: #ffdd44; font-size: 10px; }
