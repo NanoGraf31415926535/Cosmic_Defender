@@ -1,6 +1,6 @@
 # Cosmic Defender: Protect Your Station from the Alien Onslaught!
 
-Get ready for an interstellar tower defense experience with Cosmic Defender! In this thrilling strategy game, your mission is to defend your space station from relentless waves of alien invaders.
+ Get ready for an interstellar tower defense experience with Cosmic Defender! In this thrilling strategy game, your mission is to defend your space station from relentless waves of alien invaders.
 --- 
 ## Gameplay
 Strategically place towers to create an impenetrable defense. Earn credits by defeating enemies and use them to upgrade your towers, increasing their damage, range, and fire rate. Don't let the alien forces reach the end of the path, or your station's health will deplete!
