@@ -1,4 +1,5 @@
 let statusMessageTimeoutId = null;
+
 function showStatusMessage(message, duration = 2000) {
     statusMessageEl.textContent = message;
     if (statusMessageTimeoutId) {
@@ -80,11 +81,8 @@ function setupSounds() {
         volume: -20
     }).toDestination();
 
-    // Player for pre-recorded wave start sound
     sounds.waveStart = new Tone.Player("https://tonejs.github.io/audio/berklee/gong_1.mp3").toDestination();
-    // Player for game over sound
     sounds.gameOver = new Tone.Player("https://tonejs.github.io/audio/berklee/gong_2.mp3").toDestination();
-    // Player for victory sound
     sounds.victory = new Tone.Player("https://tonejs.github.io/audio/berklee/gong_1.mp3").toDestination();
 
     sounds.waveStart.volume.value = -10;
@@ -116,14 +114,15 @@ function playSound(soundName, note = 'C4', duration = '8n') {
 function generateTowerButtons() {
     const shopEl = document.querySelector('.tower-shop');
     shopEl.innerHTML = ''; 
-    Object.keys(TOWER_BASE_STATS).forEach(type => {
+    Object.keys(TOWER_BASE_STATS).forEach((type, index) => {
         const config = TOWER_BASE_STATS[type];
         const button = document.createElement('button');
         button.classList.add('tower-button');
-        button.id = `${type}Tower`; // Assign ID for easy selection/disabling
+        button.id = `${type}Tower`; 
         button.onclick = () => selectTowerTypeToBuild(type);
+        const keyHint = (index + 1).toString();
         button.innerHTML = `
-            <div class="tower-name">${config.name}</div>
+            <div class="tower-name">${config.name} <span class='key-hint'>(${keyHint})</span></div>
             <div class="tower-cost">Cost: ${config.cost} credits</div>
             <div class="tower-desc">Lvl 1: ${config.levels[0].damage} Dmg, ${config.levels[0].range} Rng</div>
         `;
@@ -131,7 +130,6 @@ function generateTowerButtons() {
     });
 }
 
-// Resizes canvas to fit its parent and regenerates the enemy path
 function resizeCanvas() {
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
@@ -139,7 +137,8 @@ function resizeCanvas() {
         generatePath();
     }
 }
-window.addEventListener('resize', resizeCanvas); 
+window.addEventListener('resize', resizeCanvas);
+
 function generatePath() {
     path = [];
     const width = canvas.width;
@@ -147,24 +146,24 @@ function generatePath() {
     const segments = 12; 
     const padding = 50; 
     const startY = height / 2 + (Math.random() - 0.5) * (height / 6);
-    path.push({ x: padding, y: startY });
+    path.push({ x: padding, y: startY }); 
+
     for (let i = 1; i <= segments; i++) {
-        const t = i / segments;
+        const t = i / segments; 
         let x = padding + t * (width - 2 * padding);
         let y = startY + Math.sin(t * Math.PI * (2.5 + Math.random() * 1)) * (height / (3.5 + Math.random() * 2)) * Math.cos(t * Math.PI * (0.5 + Math.random() * 0.5));
 
-        // Add a general vertical offset for the whole path
-        y += (Math.random() - 0.5) * (height / 8);
-        y = Math.max(padding, Math.min(height - padding, y));
+        y += (Math.random() - 0.5) * (height / 8); 
+        y = Math.max(padding, Math.min(height - padding, y)); 
         path.push({ x, y });
     }
     const endY = height / 2 + (Math.random() - 0.5) * (height / 6);
-    path.push({ x: width - padding, y: endY });
+    path.push({ x: width - padding, y: endY }); 
 }
 
 function spawnParticles(x, y, count, color, type) {
     for (let i = 0; i < count; i++) {
-        gameState.particles.push(new Particle(x, y, type === 'explosion' ? 8 : 2, color, type)); 
+        gameState.particles.push(new Particle(x, y, type === 'explosion' ? 8 : 2, color, type));
     }
 }
 
@@ -175,14 +174,13 @@ function drawExplosionFlash() {
         ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'; 
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.restore();
-        gameState.explosionFlashTimer -= gameState.gameSpeed;
+        gameState.explosionFlashTimer -= gameState.gameSpeed; 
     }
 }
 
-// Displays a modal with a custom title, message, and buttons
 function showModal(title, message, button1Text = "Restart", button1Action = restartGame, button2Text = "Menu", button2Action = showMenu) {
     gameState.isPlaying = false; 
-    if(animationFrameId) {
+    if(animationFrameId) { 
         cancelAnimationFrame(animationFrameId);
         animationFrameId = null;
     }
@@ -197,8 +195,8 @@ function showModal(title, message, button1Text = "Restart", button1Action = rest
     modalBtn2.textContent = button2Text;
     modalBtn2.onclick = button2Action;
 
-    modalOverlay.classList.remove('hidden');
-    modalOverlay.classList.add('active'); 
+    modalOverlay.classList.remove('hidden'); 
+    modalOverlay.classList.add('active');
 }
 
 function selectTowerTypeToBuild(type) {
@@ -208,31 +206,32 @@ function selectTowerTypeToBuild(type) {
         return;
     }
 
-    if (gameState.credits >= TOWER_BASE_STATS[type].cost) {
+    if (TOWER_BASE_STATS[type] && gameState.credits >= TOWER_BASE_STATS[type].cost) {
         gameState.selectedTowerType = type;
         gameState.selectedPlacedTower = null; 
         updateSelectedTowerPanel();
         showStatusMessage(`Placing: ${TOWER_BASE_STATS[type].name}. Cost: ${TOWER_BASE_STATS[type].cost}`);
 
         document.querySelectorAll('.tower-button').forEach(btn => btn.classList.remove('selected'));
-        document.getElementById(type + 'Tower').classList.add('selected');
+        const buttonEl = document.getElementById(type + 'Tower');
+        if (buttonEl) buttonEl.classList.add('selected');
         playSound('towerPlace', 'C4');
-    } else {
+    } else if (TOWER_BASE_STATS[type]) {
         showStatusMessage("Not enough credits!");
         playSound('error');
+    } else {
+        console.warn("Attempted to select unknown tower type:", type);
     }
 }
 
-// Deselects any tower type or placed tower
 function deselectTowerTypeToBuild() {
     gameState.selectedTowerType = null;
     gameState.selectedPlacedTower = null;
-    // Only clear status if not in relocation mode
     if (!gameState.isRelocatingTower) {
         showStatusMessage("Select a tower to build or click a placed tower.");
     }
     document.querySelectorAll('.tower-button').forEach(btn => btn.classList.remove('selected'));
-    updateSelectedTowerPanel(); 
+    updateSelectedTowerPanel();
 }
 
 function selectPlacedTower(tower) {
@@ -249,7 +248,7 @@ function selectPlacedTower(tower) {
 }
 
 function updateSelectedTowerPanel() {
-    if (gameState.selectedPlacedTower && !gameState.isRelocatingTower) { 
+    if (gameState.selectedPlacedTower && !gameState.isRelocatingTower) {
         const tower = gameState.selectedPlacedTower;
         const stats = tower.currentStats;
         selectedTowerPanel.classList.remove('hidden');
@@ -257,29 +256,36 @@ function updateSelectedTowerPanel() {
         selectedTowerLevelEl.textContent = tower.level + 1;
         selectedTowerDamageEl.textContent = stats.damage;
         selectedTowerRangeEl.textContent = stats.range;
-        selectedTowerFireRateEl.textContent = (60 / (stats.fireRate / 60)).toFixed(1) + "/sec";
+        selectedTowerFireRateEl.textContent = (60 / (stats.fireRate / 60)).toFixed(1) + "/sec"; 
+
+        const creditsIconSpanHTML = `<span class="credits-icon" style="display: inline-block; vertical-align: middle; width:10px; height:10px;"></span>`;
 
         if (tower.level < tower.maxLevel) {
+            upgradeTowerBtn.innerHTML = `Upgrade <span class='key-hint'>(U)</span> (<span id="upgradeTowerCost">${stats.upgradeCost}</span> ${creditsIconSpanHTML})`;
             upgradeTowerBtn.disabled = gameState.credits < stats.upgradeCost;
-            upgradeTowerCostEl.textContent = stats.upgradeCost;
             upgradeTowerBtn.classList.remove('hidden');
         } else {
+            upgradeTowerBtn.innerHTML = `Upgrade <span class='key-hint'>(U)</span> (MAX)`;
+            upgradeTowerBtn.disabled = true; // Should be disabled if MAX or hidden
+            // Keep consistent with hiding if max level is reached.
+            // If you want it to show "MAX" and be visible but disabled:
+            // upgradeTowerBtn.classList.remove('hidden');
+            // For now, matching original logic of hiding:
             upgradeTowerBtn.classList.add('hidden'); 
-            upgradeTowerCostEl.textContent = "MAX";
         }
 
-        const refundAmount = Math.floor(tower.getTotalCost() * 0.7); 
-        sellTowerRefundEl.textContent = refundAmount;
+        const refundAmount = Math.floor(tower.getTotalCost() * 0.7);
+        sellTowerBtn.innerHTML = `Sell <span class='key-hint'>(S)</span> (<span id="sellTowerRefund">${refundAmount}</span> ${creditsIconSpanHTML})`;
         sellTowerBtn.classList.remove('hidden'); 
 
-        relocateTowerCostEl.textContent = tower.baseConfig.relocateCost;
+        relocateTowerBtn.innerHTML = `Relocate <span class='key-hint'>(R)</span> (<span id="relocateTowerCost">${tower.baseConfig.relocateCost}</span> ${creditsIconSpanHTML})`;
         relocateTowerBtn.disabled = gameState.credits < tower.baseConfig.relocateCost;
         relocateTowerBtn.classList.remove('hidden');
 
         if (tower.baseConfig.ability) {
             abilitySection.classList.remove('hidden');
             const ability = tower.baseConfig.ability;
-            abilityNameEl.textContent = ability.name;
+            abilityNameEl.innerHTML = `${ability.name} <span class='key-hint'>(A)</span>`; // Hint next to name
             abilityCostEl.textContent = `Cost: ${ability.cost} credits`;
 
             if (tower.abilityCooldown > 0) {
@@ -292,19 +298,18 @@ function updateSelectedTowerPanel() {
         } else {
             abilitySection.classList.add('hidden'); 
         }
-
-        showStatusMessage(`Selected: ${tower.baseConfig.name} (Lvl ${tower.level + 1})`, 0);
+        showStatusMessage(`Selected: ${tower.baseConfig.name} (Lvl ${tower.level + 1})`, 0); 
     } else {
-        selectedTowerPanel.classList.add('hidden');
-        abilitySection.classList.add('hidden'); 
+        selectedTowerPanel.classList.add('hidden'); 
+        abilitySection.classList.add('hidden');
         Object.keys(TOWER_BASE_STATS).forEach(type => {
             const button = document.getElementById(type + 'Tower');
             if (button) {
-               button.disabled = gameState.credits < TOWER_BASE_STATS[type].cost || gameState.isRelocatingTower; 
+               button.disabled = gameState.credits < TOWER_BASE_STATS[type].cost || gameState.isRelocatingTower;
             }
         });
         if (!gameState.selectedTowerType && !gameState.isRelocatingTower) {
-            showStatusMessage("Select a tower to build or click a placed tower.", 0);
+             showStatusMessage("Select a tower to build or click a placed tower.", 0);
         }
     }
 }
@@ -332,7 +337,7 @@ function relocateSelectedTower() {
             return;
         }
 
-        gameState.credits -= relocateCost; 
+        gameState.credits -= relocateCost;
         towerToRelocate.originalX = towerToRelocate.x; 
         towerToRelocate.originalY = towerToRelocate.y;
 
@@ -343,8 +348,8 @@ function relocateSelectedTower() {
 
         deselectTowerTypeToBuild(); 
         showStatusMessage(`Relocating ${towerToRelocate.baseConfig.name}. Click to place, ESC to cancel.`, 0);
-        playSound('towerPlace', 'G5'); 
-        updateUI(); 
+        playSound('towerPlace', 'G5');
+        updateUI();
     }
 }
 
@@ -354,7 +359,6 @@ function sellSelectedTower() {
         const refundAmount = Math.floor(towerToSell.getTotalCost() * 0.7); 
 
         gameState.credits += refundAmount;
-
         gameState.towers = gameState.towers.filter(tower => tower.id !== towerToSell.id);
 
         playSound('sell', 'F4');
@@ -366,17 +370,17 @@ function sellSelectedTower() {
 
 function prepareNextWave() {
     if (gameState.wave >= FINAL_WAVE) {
-        gameWon();
+        gameWon(); 
         return;
     }
 
     gameState.isIntermission = true;
     gameState.waveCountdown = INTERMISSION_DURATION;
     nextWaveBtn.disabled = false;
-    nextWaveBtn.textContent = `🌊 Start Wave ${gameState.wave + 1} (Skip)`;
+    nextWaveBtn.innerHTML = `🌊 Start Wave ${gameState.wave + 1} (Skip) <span class="key-hint">(N, Space)</span>`;
     waveTimerEl.textContent = `Next wave in ${Math.ceil(gameState.waveCountdown)}s...`;
     showStatusMessage(`Wave ${gameState.wave} cleared! Prepare for Wave ${gameState.wave + 1}.`, 0);
-    generatePath();
+    generatePath(); 
 }
 
 function startWave() {
@@ -384,7 +388,7 @@ function startWave() {
 
     gameState.wave++;
     gameState.waveActive = true;
-    gameState.isIntermission = false; 
+    gameState.isIntermission = false;
     gameState.enemiesSpawnedThisWave = 0;
 
     const currentWaveConfig = WAVE_CONFIG[Math.min(gameState.wave - 1, WAVE_CONFIG.length - 1)];
@@ -402,14 +406,14 @@ function startWave() {
     }
     gameState.totalEnemiesThisWave = enemiesToSpawnList.length;
 
-    const spawnInterval = currentWaveConfig.spawnInterval || 800;
+    const spawnInterval = currentWaveConfig.spawnInterval || 800; 
 
     function spawnEnemyFromList() {
         if (gameState.enemiesSpawnedThisWave < gameState.totalEnemiesThisWave && gameState.waveActive && !gameState.isPaused && gameState.isPlaying) {
             const enemyType = enemiesToSpawnList[gameState.enemiesSpawnedThisWave];
             gameState.enemies.push(new Enemy(enemyType));
             gameState.enemiesSpawnedThisWave++;
-            if(gameState.isPlaying && gameState.waveActive) {
+            if(gameState.isPlaying && gameState.waveActive) { 
                setTimeout(spawnEnemyFromList, spawnInterval / gameState.gameSpeed);
             }
         }
@@ -417,7 +421,7 @@ function startWave() {
     spawnEnemyFromList(); 
 
     nextWaveBtn.disabled = true;
-    nextWaveBtn.textContent = `Wave ${gameState.wave} Active`;
+    nextWaveBtn.innerHTML = `Wave ${gameState.wave} Active`; // Hint removed when wave is active
     waveTimerEl.textContent = `Wave ${gameState.wave} in progress...`;
     playSound('waveStart');
     showStatusMessage(`Wave ${gameState.wave} incoming!`);
@@ -436,7 +440,7 @@ canvas.addEventListener('mousemove', (e) => {
 });
 
 canvas.addEventListener('click', (e) => {
-    if (gameState.isPaused || !gameState.isPlaying) return;
+    if (gameState.isPaused || !gameState.isPlaying) return; 
 
     const rect = canvas.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
@@ -455,7 +459,7 @@ canvas.addEventListener('click', (e) => {
         }
         for (let tower of gameState.towers) {
             const dist = Math.sqrt((tower.x - clickX) ** 2 + (tower.y - clickY) ** 2);
-            if (dist < (tower.baseConfig.size + tower.level) + towerSize + 5) {
+            if (dist < (tower.baseConfig.size + tower.level) + towerSize + 5) { 
                 validPosition = false; break;
             }
         }
@@ -463,17 +467,17 @@ canvas.addEventListener('click', (e) => {
         if (validPosition) {
             relocatingTower.x = clickX;
             relocatingTower.y = clickY;
-            gameState.towers.push(relocatingTower);
+            gameState.towers.push(relocatingTower); 
             gameState.isRelocatingTower = false;
             gameState.relocatingTower = null;
-            selectPlacedTower(relocatingTower);
+            selectPlacedTower(relocatingTower); 
             showStatusMessage(`${relocatingTower.baseConfig.name} relocated!`, 2000);
-            playSound('towerPlace', 'C4'); 
+            playSound('towerPlace', 'C4');
         } else {
             showStatusMessage("Cannot place tower here! Overlaps with path or another tower.", 2000);
             playSound('error');
         }
-        return;
+        return; 
     }
 
     for (let tower of gameState.towers) {
@@ -495,13 +499,13 @@ canvas.addEventListener('click', (e) => {
         let validPosition = true;
         for (let point of path) {
             const dist = Math.sqrt((point.x - clickX) ** 2 + (point.y - clickY) ** 2);
-            if (dist < 30) {
+            if (dist < 30) { 
                 validPosition = false; break;
             }
         }
         for (let tower of gameState.towers) {
             const dist = Math.sqrt((tower.x - clickX) ** 2 + (tower.y - clickY) ** 2);
-            if (dist < 35) {
+            if (dist < 35) { 
                 validPosition = false; break;
             }
         }
@@ -517,34 +521,103 @@ canvas.addEventListener('click', (e) => {
             playSound('error');
         }
     } else if (gameState.selectedPlacedTower) { 
-        gameState.selectedPlacedTower = null;
-        updateSelectedTowerPanel(); 
-    }
-});
-
-window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && gameState.isRelocatingTower) {
-        const cancelledTower = gameState.relocatingTower;
-        gameState.credits += cancelledTower.baseConfig.relocateCost;
-        cancelledTower.x = cancelledTower.originalX;
-        cancelledTower.y = cancelledTower.originalY;
-        gameState.towers.push(cancelledTower); 
-
-        gameState.isRelocatingTower = false;
-        gameState.relocatingTower = null;
         deselectTowerTypeToBuild(); 
-        showStatusMessage("Relocation cancelled. Credits refunded.", 2000);
-        playSound('sell', 'F4'); 
-        updateUI();
     }
 });
+
+
+function handleKeydown(e) {
+    if (modalOverlay.classList.contains('active') || menuOverlay.classList.contains('active')) {
+        return;
+    }
+    if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+        e.preventDefault();
+    }
+
+    switch (e.key.toUpperCase()) {
+        case '1':
+            selectTowerTypeToBuild('laser');
+            break;
+        case '2':
+            selectTowerTypeToBuild('missile');
+            break;
+        case '3':
+            selectTowerTypeToBuild('freeze');
+            break;
+        case 'U': 
+            if (gameState.selectedPlacedTower && !upgradeTowerBtn.disabled) {
+                upgradeSelectedTower();
+            } else if (gameState.selectedPlacedTower) {
+                 playSound('error');
+                 showStatusMessage("Cannot upgrade: Not enough credits or max level.", 1500);
+            }
+            break;
+        case 'S': 
+            if (gameState.selectedPlacedTower && !sellTowerBtn.disabled) {
+                sellSelectedTower();
+            }
+            break;
+        case 'R': 
+            if (gameState.selectedPlacedTower && !relocateTowerBtn.disabled) {
+                relocateSelectedTower();
+            } else if (gameState.selectedPlacedTower) {
+                playSound('error');
+                showStatusMessage("Cannot relocate: Not enough credits.", 1500);
+            }
+            break;
+        case 'A': 
+            if (gameState.selectedPlacedTower && gameState.selectedPlacedTower.baseConfig.ability && !activateAbilityBtn.disabled) {
+                activateSelectedTowerAbility();
+            } else if (gameState.selectedPlacedTower && gameState.selectedPlacedTower.baseConfig.ability) {
+                playSound('error');
+                showStatusMessage("Cannot activate: Not enough credits or on cooldown.", 1500);
+            }
+            break;
+        case 'N': 
+        case ' ': 
+            if (!nextWaveBtn.disabled) {
+                skipWaveCountdown();
+            }
+            break;
+        case 'P': 
+            togglePauseGame();
+            break;
+        case 'M': 
+            toggleMute();
+            break;
+        case 'ESCAPE': 
+            if (gameState.isRelocatingTower && gameState.relocatingTower) {
+                const cancelledTower = gameState.relocatingTower;
+                gameState.credits += cancelledTower.baseConfig.relocateCost; 
+                cancelledTower.x = cancelledTower.originalX;
+                cancelledTower.y = cancelledTower.originalY;
+                gameState.towers.push(cancelledTower);
+
+                gameState.isRelocatingTower = false;
+                gameState.relocatingTower = null;
+                deselectTowerTypeToBuild(); 
+                showStatusMessage("Relocation cancelled. Credits refunded.", 2000);
+                playSound('sell', 'F4'); 
+                updateUI();
+            } else if (gameState.selectedTowerType) {
+                deselectTowerTypeToBuild();
+                showStatusMessage("Tower placement cancelled.", 1500);
+                playSound('sell', 'F3');
+            } else if (gameState.selectedPlacedTower) {
+                deselectTowerTypeToBuild();
+            }
+            break;
+    }
+}
+window.addEventListener('keydown', handleKeydown);
+
 
 function togglePauseGame() {
     gameState.isPaused = !gameState.isPaused;
-    pauseBtn.textContent = gameState.isPaused ? "▶️ Resume" : "⏸️ Pause";
+    pauseBtn.innerHTML = gameState.isPaused ? "▶️ Resume <span class='key-hint'>(P)</span>" : "⏸️ Pause <span class='key-hint'>(P)</span>";
     showStatusMessage(gameState.isPaused ? "Game Paused." : "Game Resumed.");
     if (!gameState.isPaused && gameState.isPlaying) {
-         gameState.lastTime = performance.now();
+         gameState.lastTime = performance.now(); 
          if (animationFrameId === null) { 
             gameLoop(gameState.lastTime);
          }
@@ -564,24 +637,22 @@ function setGameSpeed(speed) {
 
 function toggleMute() {
     gameState.isMuted = !gameState.isMuted;
-    muteBtn.textContent = gameState.isMuted ? "🔇 Unmute" : "🔊 Mute";
+    muteBtn.innerHTML = gameState.isMuted ? "🔇 Unmute <span class='key-hint'>(M)</span>" : "🔊 Mute <span class='key-hint'>(M)</span>";
     showStatusMessage(gameState.isMuted ? "Sound Muted." : "Sound On.");
 }
 
 function updateUI() {
-    healthEl.textContent = Math.max(0, gameState.health);
+    healthEl.textContent = Math.max(0, gameState.health); 
     creditsEl.textContent = gameState.credits;
     waveEl.textContent = gameState.wave;
 
     Object.keys(TOWER_BASE_STATS).forEach(type => {
         const button = document.getElementById(type + 'Tower');
         if (button) {
-           button.disabled = gameState.credits < TOWER_BASE_STATS[type].cost || gameState.isRelocatingTower; 
+           button.disabled = gameState.credits < TOWER_BASE_STATS[type].cost || gameState.isRelocatingTower;
         }
     });
-    if (gameState.selectedPlacedTower) {
-        updateSelectedTowerPanel();
-    } else if (gameState.isRelocatingTower) { 
+    if (gameState.selectedPlacedTower || gameState.isRelocatingTower) {
         updateSelectedTowerPanel();
     }
 }
@@ -600,17 +671,16 @@ function gameWon() {
 
 function startGame() {
     if (Tone.context.state !== 'running') {
-        Tone.start(); 
+        Tone.start();
     }
     if (!sounds.shootLaser) setupSounds(); 
 
     menuOverlay.classList.remove('active');
     setTimeout(() => menuOverlay.classList.add('hidden'), 300); 
 
-    gameUI.classList.remove('hidden'); 
+    gameUI.classList.remove('hidden');
 
     initGame(); 
-
 
     gameState.lastTime = performance.now();
     if (animationFrameId === null) { 
@@ -621,12 +691,12 @@ function startGame() {
 function restartGame() {
     modalOverlay.classList.remove('active');
     setTimeout(() => modalOverlay.classList.add('hidden'), 300);
-    startGame();
+    startGame(); 
 }
 
 function showMenu() {
-    gameState.isPlaying = false;
-    if(animationFrameId) {
+    gameState.isPlaying = false; 
+    if(animationFrameId) { 
         cancelAnimationFrame(animationFrameId);
         animationFrameId = null;
     }
@@ -635,11 +705,17 @@ function showMenu() {
     setTimeout(() => modalOverlay.classList.add('hidden'), 300);
 
     menuOverlay.classList.remove('hidden');
-    menuOverlay.classList.add('active'); 
+    menuOverlay.classList.add('active');
 }
 
 window.onload = () => {
-    generateTowerButtons();
-    setGameSpeed(1); 
-    resizeCanvas(); 
+    generateTowerButtons(); 
+    setGameSpeed(1);        
+    resizeCanvas();   
+    // Set initial hints for buttons not covered by dynamic updates
+    const pauseButton = document.getElementById('pauseBtn');
+    if(pauseButton) pauseButton.innerHTML = `⏸️ Pause <span class='key-hint'>(P)</span>`;
+    const muteButton = document.getElementById('muteBtn');
+    if(muteButton) muteButton.innerHTML = `🔊 Mute <span class='key-hint'>(M)</span>`;
+    // nextWaveBtn hint is set in prepareNextWave initially
 };
