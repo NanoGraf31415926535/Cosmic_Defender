@@ -3,38 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cosmic Defender - Enhanced</title>
+    <title>Cosmic Defender - Tower Defense</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="menuOverlay" class="menu-overlay active">
-        <div class="menu">
-            <h1>🚀 COSMIC DEFENDER</h1>
-            <p>Defend your space station from waves of alien invaders! Place towers, upgrade them, and survive the cosmic onslaught.</p>
-            <p><strong>How to Play:</strong><br>
-            • Select towers from the sidebar or use number keys (1, 2, 3).<br>
-            • Click on the game area to place them.<br>
-            • Click placed towers to select & upgrade.<br>
-            • Start waves and defend your base.<br>
-            • Don't let enemies reach the end!</p>
-            <p><strong>Keyboard Shortcuts:</strong><br>
-                <strong>Towers:</strong><br>
-                &nbsp;&nbsp;`1`: Select Laser Turret<br>
-                &nbsp;&nbsp;`2`: Select Missile Launcher<br>
-                &nbsp;&nbsp;`3`: Select Cryo Blaster<br>
-                <strong>Selected Tower:</strong><br>
-                &nbsp;&nbsp;`U`: Upgrade<br>
-                &nbsp;&nbsp;`S`: Sell<br>
-                &nbsp;&nbsp;`R`: Relocate<br>
-                &nbsp;&nbsp;`A`: Activate Ability<br>
-                <strong>Game:</strong><br>
-                &nbsp;&nbsp;`N` or `Space`: Next Wave/Skip<br>
-                &nbsp;&nbsp;`P`: Pause/Resume<br>
-                &nbsp;&nbsp;`M`: Mute/Unmute<br>
-                &nbsp;&nbsp;`Esc`: Cancel Placement/Relocation
-            </p>
-            <button class="menu-button" onclick="startGame()">🎮 Start Game</button>
+    <div id="mainMenuOverlay" class="main-menu-overlay active">
+        <div class="main-menu-backdrop">
+            <div class="nebula"></div>
+            <div class="galaxies"></div>
+            <div class="cosmic-defenders">
+            </div>
+            <div class="star-fortress">
+            </div>
+        </div>
+        <div class="main-menu-panel">
+            <h1 class="main-menu-title">Main Menu</h1>
+            <div class="main-menu-buttons">
+                <button class="main-menu-button" id="startButton">Start New Game</button>
+                <button class="main-menu-button" id="selectMissionButton">Select Mission</button>
+                <button class="main-menu-button" id="settingsButton">Settings</button>
+                <button class="main-menu-button" id="exitButton">Exit</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="missionSelectOverlay" class="modal-overlay hidden">
+        <div class="modal-content mission-select-content">
+            <h1 id="missionSelectTitle">Select Mission</h1>
+            <div class="mission-map-container">
+                <canvas id="missionMapCanvas"></canvas>
+                <div id="missionDetailsPanel" class="mission-details-panel hidden">
+                    <h2 id="missionDetailsName"></h2>
+                    <p id="missionDetailsDescription"></p>
+                    <p id="missionDetailsStory"></p>
+                    <button id="missionDetailsStartBtn" class="modal-button" onclick="startSelectedMission()">Begin Mission</button>
+                </div>
+            </div>
+            <button class="modal-button" onclick="showMainMenu()">📋 Back to Main Menu</button>
+        </div>
+    </div>
+
+    <div id="settingsOverlay" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h1 id="settingsTitle">Settings</h1>
+            <div id="settingsContent" class="settings-content">
+                <p>SFX Volume: <input type="range" min="0" max="100" value="70" id="sfxVolumeSlider"></p>
+                <p>Music Volume: <input type="range" min="0" max="100" value="50" id="musicVolumeSlider"></p>
+                <button class="modal-button" onclick="clearGameProgress()">Clear Game Progress</button>
+            </div>
+            <button class="modal-button" onclick="closeSettings()">↩️ Back</button>
         </div>
     </div>
 
@@ -43,7 +62,7 @@
             <h1 id="modalTitle">Game Over</h1>
             <p id="modalMessage">You survived X waves!</p>
             <button id="modalButton1" class="modal-button" onclick="restartGame()">🔄 Play Again</button>
-            <button id="modalButton2" class="modal-button" onclick="showMenu()">📋 Main Menu</button>
+            <button id="modalButton2" class="modal-button" onclick="showMainMenu()">📋 Main Menu</button>
         </div>
     </div>
 
@@ -53,6 +72,7 @@
                 <div class="stat"><div class="stat-icon health-icon"></div><span>Health: <span id="health">100</span></span></div>
                 <div class="stat"><div class="stat-icon credits-icon"></div><span>Credits: <span id="credits">150</span></span></div>
                 <div class="stat"><div class="stat-icon wave-icon"></div><span>Wave: <span id="wave">1</span> / <span id="finalWaveDisplay">--</span></span></div>
+                <div class="stat"><div class="stat-icon mission-icon"></div><span>Mission: <span id="currentMissionName">Training Grounds</span></span></div>
             </div>
             <div id="waveTimer">Ready to start!</div>
         </div>
@@ -61,11 +81,11 @@
             <div class="game-canvas">
                 <canvas id="gameCanvas"></canvas>
             </div>
-            
+
             <div class="sidebar">
                 <h3>🏗️ BUILD TOWERS</h3>
                 <div class="tower-shop">
-                    </div>
+                </div>
 
                 <div class="tower-info-panel hidden" id="selectedTowerPanel">
                     <h4 id="selectedTowerName">Selected Tower</h4>
@@ -93,7 +113,7 @@
                         </button>
                     </div>
                 </div>
-                
+
                 <h3>⚙️ CONTROLS</h3>
                 <div class="game-controls">
                     <button class="control-button start-wave" onclick="skipWaveCountdown()" id="nextWaveBtn">🌊 Start Wave</button>
@@ -105,7 +125,7 @@
                         <button class="action-button" onclick="setGameSpeed(1)" id="speed1xBtn">1x Speed</button>
                         <button class="action-button" onclick="setGameSpeed(2)" id="speed2xBtn">2x Speed</button>
                     </div>
-                    <button class="control-button menu-btn" onclick="showMenu()">📋 Menu</button>
+                    <button class="control-button menu-btn" onclick="showMainMenu()">📋 Menu</button>
                 </div>
 
                 <div class="game-info-box">

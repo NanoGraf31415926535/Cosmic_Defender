@@ -4,18 +4,18 @@ class Tower {
         this.y = y;
         this.type = type;
         this.baseConfig = TOWER_BASE_STATS[type];
-        this.level = 0; 
-        this.config = this.baseConfig.levels[this.level]; 
-        this.cooldown = 0; 
-        this.angle = 0; 
-        this.id = Math.random().toString(36).substr(2, 9); 
+        this.level = 0;
+        this.config = this.baseConfig.levels[this.level];
+        this.cooldown = 0;
+        this.angle = 0;
+        this.id = Math.random().toString(36).substr(2, 9);
 
-        this.maxHealth = 100; 
+        this.maxHealth = 100;
         this.health = this.maxHealth;
 
         this.abilityCooldown = 0;
         this.abilityActiveTimer = 0;
-        this.currentDamageMultiplier = 1; 
+        this.currentDamageMultiplier = 1;
 
         this.originalX = x;
         this.originalY = y;
@@ -43,11 +43,11 @@ class Tower {
             if (gameState.credits >= upgradeCost) {
                 gameState.credits -= upgradeCost;
                 this.level++;
-                this.config = this.currentStats; 
+                this.config = this.currentStats;
                 this.health = Math.min(this.maxHealth, this.health + (this.maxHealth * 0.2));
                 playSound('upgrade', 'E5');
                 updateUI();
-                updateSelectedTowerPanel(); 
+                updateSelectedTowerPanel();
                 return true;
             } else {
                 playSound('error');
@@ -77,25 +77,25 @@ class Tower {
         gameState.credits -= this.baseConfig.ability.cost;
         this.abilityActiveTimer = this.baseConfig.ability.duration;
         this.abilityCooldown = this.baseConfig.ability.cooldown;
-        this.currentDamageMultiplier = this.baseConfig.ability.damageMultiplier; 
+        this.currentDamageMultiplier = this.baseConfig.ability.damageMultiplier;
         playSound('abilityActivate', 'C6');
         showStatusMessage(`${this.baseConfig.name} activated ${this.baseConfig.ability.name}!`, 2000);
         updateUI();
-        updateSelectedTowerPanel(); 
+        updateSelectedTowerPanel();
         return true;
     }
 
     takeDamage(damage) {
         this.health -= damage;
-        playSound('hit', 'C2'); 
-        spawnParticles(this.x, this.y, 5, '#ff0000', 'hit'); 
+        playSound('hit', 'C2');
+        spawnParticles(this.x, this.y, 5, '#ff0000', 'hit');
 
         if (this.health <= 0) {
             playSound('explosion');
             spawnParticles(this.x, this.y, 20, this.baseConfig.color, 'explosion');
-            return true; 
+            return true;
         }
-        return false; 
+        return false;
     }
 
     update() {
@@ -107,7 +107,7 @@ class Tower {
         if (this.abilityActiveTimer > 0) {
             this.abilityActiveTimer -= gameState.gameSpeed;
             if (this.abilityActiveTimer <= 0) {
-                this.currentDamageMultiplier = 1; 
+                this.currentDamageMultiplier = 1;
                 showStatusMessage(`${this.baseConfig.name}'s Overcharge ended.`, 2000);
             }
         }
@@ -118,7 +118,7 @@ class Tower {
 
         for (let enemy of gameState.enemies) {
             if (enemy.isStealthed && enemy.type === 'stealth') {
-                continue; 
+                continue;
             }
 
             const dist = Math.sqrt((enemy.x - this.x) ** 2 + (enemy.y - this.y) ** 2);
@@ -145,14 +145,15 @@ class Tower {
     }
 
     draw() {
+        if (!ctx) return;
         const towerSize = this.baseConfig.size + this.level;
         const baseColor = this.baseConfig.color;
-        const highlightColor = '#ffffff'; 
+        const highlightColor = '#ffffff';
 
         if ((gameState.selectedTowerType === this.type && !this.id) ||
             (gameState.selectedPlacedTower && gameState.selectedPlacedTower.id === this.id) ||
-            (gameState.isRelocatingTower && gameState.relocatingTower.id === this.id)) { 
-            ctx.strokeStyle = baseColor + '44'; 
+            (gameState.isRelocatingTower && gameState.relocatingTower.id === this.id)) {
+            ctx.strokeStyle = baseColor + '44';
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.arc(this.x, this.y, this.config.range, 0, Math.PI * 2);
@@ -203,9 +204,9 @@ class Tower {
 
         if (this.abilityActiveTimer > 0) {
             ctx.save();
-            ctx.strokeStyle = '#ff00ff'; 
+            ctx.strokeStyle = '#ff00ff';
             ctx.lineWidth = 2;
-            ctx.globalAlpha = Math.sin(performance.now() * 0.01) * 0.4 + 0.6; 
+            ctx.globalAlpha = Math.sin(performance.now() * 0.01) * 0.4 + 0.6;
             ctx.beginPath();
             ctx.arc(this.x, this.y, towerSize + 5, 0, Math.PI * 2);
             ctx.stroke();
@@ -217,7 +218,7 @@ class Tower {
         const barHeight = 4;
         ctx.fillStyle = '#333';
         ctx.fillRect(this.x - barWidth/2, this.y - towerSize - 8, barWidth, barHeight);
-        ctx.fillStyle = this.health / this.maxHealth > 0.3 ? '#00ff00' : '#ff4444'; 
+        ctx.fillStyle = this.health / this.maxHealth > 0.3 ? '#00ff00' : '#ff4444';
         ctx.fillRect(this.x - barWidth/2, this.y - towerSize - 8, barWidth * (this.health / this.maxHealth), barHeight);
     }
 }
@@ -229,22 +230,28 @@ class Enemy {
         this.health = this.config.health * (1 + gameState.wave * 0.1);
         this.maxHealth = this.health;
         this.speed = this.config.speed;
-        this.pathIndex = 0; 
-        this.x = path[0].x;
-        this.y = path[0].y;
+        this.pathIndex = 0;
+        if (path && path.length > 0) {
+            this.x = path[0].x;
+            this.y = path[0].y;
+        } else {
+            this.x = 0;
+            this.y = 0;
+            console.warn("Path not available for enemy creation");
+        }
         this.slowFactor = 1;
-        this.slowTimer = 0; 
+        this.slowTimer = 0;
         this.id = Math.random().toString(36).substr(2, 9);
-        this.hitEffectTimer = 0; 
+        this.hitEffectTimer = 0;
 
         this.healingCooldown = this.config.healingCooldown || 0;
 
-        this.isStealthed = false;
-        this.stealthTimer = 0; 
-        this.unstealthTimer = 0; 
+        this.isStealth = false; // Renamed from isStealthed to avoid conflict with type
+        this.stealthTimer = 0;
+        this.unstealthTimer = 0;
 
         if (this.type === 'stealth') {
-            this.isStealthed = true;
+            this.isStealth = true;
             this.stealthTimer = this.config.stealthDuration;
         }
     }
@@ -253,7 +260,7 @@ class Enemy {
         if (this.slowTimer > 0) {
             this.slowTimer -= gameState.gameSpeed;
         } else {
-            this.slowFactor = 1; 
+            this.slowFactor = 1;
         }
 
         if (this.hitEffectTimer > 0) {
@@ -261,22 +268,22 @@ class Enemy {
         }
 
         if (this.type === 'stealth') {
-            if (this.isStealthed) {
+            if (this.isStealth) {
                 this.stealthTimer -= gameState.gameSpeed;
                 if (this.stealthTimer <= 0) {
-                    this.isStealthed = false;
+                    this.isStealth = false;
                     this.unstealthTimer = this.config.stealthCooldown;
                 }
             } else {
                 this.unstealthTimer -= gameState.gameSpeed;
                 if (this.unstealthTimer <= 0) {
-                    this.isStealthed = true;
+                    this.isStealth = true;
                     this.stealthTimer = this.config.stealthDuration;
                 }
             }
         }
 
-        if (this.pathIndex < path.length - 1) {
+        if (path.length > 0 && this.pathIndex < path.length - 1) {
             const targetPoint = path[this.pathIndex + 1];
             const dx = targetPoint.x - this.x;
             const dy = targetPoint.y - this.y;
@@ -292,14 +299,17 @@ class Enemy {
                 this.x += (dx / distToTarget) * currentSpeed;
                 this.y += (dy / distToTarget) * currentSpeed;
             }
+        } else if (path.length === 0) {
+             return true;
         }
+
 
         if (this.type === 'healer') {
             if (this.healingCooldown > 0) {
                 this.healingCooldown -= gameState.gameSpeed;
             } else {
                 gameState.enemies.forEach(otherEnemy => {
-                    if (otherEnemy.id !== this.id) { 
+                    if (otherEnemy.id !== this.id) {
                         const dist = Math.sqrt((otherEnemy.x - this.x) ** 2 + (otherEnemy.y - this.y) ** 2);
                         if (dist < this.config.healingRange) {
                             otherEnemy.health = Math.min(otherEnemy.maxHealth, otherEnemy.health + this.config.healingAmount);
@@ -307,7 +317,7 @@ class Enemy {
                         }
                     }
                 });
-                this.healingCooldown = this.config.healingCooldown; 
+                this.healingCooldown = this.config.healingCooldown;
             }
         }
 
@@ -315,14 +325,14 @@ class Enemy {
             for (let i = gameState.towers.length - 1; i >= 0; i--) {
                 const tower = gameState.towers[i];
                 const dist = Math.sqrt((tower.x - this.x) ** 2 + (tower.y - this.y) ** 2);
-                if (dist < this.config.size + tower.baseConfig.size + 5) { 
-                    this.selfDestruct(tower); 
-                    return false; 
+                if (dist < this.config.size + tower.baseConfig.size + 5) {
+                    this.selfDestruct(tower);
+                    return false;
                 }
             }
         }
-
-        return this.pathIndex < path.length - 1; 
+        if (path.length === 0) return true;
+        return this.pathIndex < path.length - 1;
     }
 
     takeDamage(damage, sourceTower) {
@@ -332,7 +342,7 @@ class Enemy {
         }
 
         this.health -= actualDamage;
-        this.hitEffectTimer = 10; 
+        this.hitEffectTimer = 10;
         spawnParticles(this.x, this.y, 3, sourceTower.baseConfig.projectileColor, 'hit');
         playSound('hit', 'C3', '16n');
 
@@ -342,12 +352,12 @@ class Enemy {
         }
 
         if (this.health <= 0) {
-            gameState.credits += this.config.reward; 
+            gameState.credits += this.config.reward;
             playSound('explosion');
             spawnParticles(this.x, this.y, 10 + this.config.size, this.config.color, 'explosion');
-            return true; 
+            return true;
         }
-        return false; 
+        return false;
     }
 
     selfDestruct(targetTower) {
@@ -360,10 +370,10 @@ class Enemy {
         }
 
         gameState.towers.forEach(otherTower => {
-            if (otherTower.id !== targetTower.id) { 
+            if (otherTower.id !== targetTower.id) {
                 const dist = Math.sqrt((otherTower.x - this.x) ** 2 + (otherTower.y - this.y) ** 2);
                 if (dist < this.config.explosionRadius) {
-                    const isOtherDestroyed = otherTower.takeDamage(this.config.explosionDamage * 0.5, this.tower); 
+                    const isOtherDestroyed = otherTower.takeDamage(this.config.explosionDamage * 0.5, this.tower);
                     if (isOtherDestroyed) {
                         gameState.towers = gameState.towers.filter(t => t.id !== otherTower.id);
                         if (gameState.selectedPlacedTower && gameState.selectedPlacedTower.id === otherTower.id) {
@@ -374,9 +384,9 @@ class Enemy {
             }
         });
 
-        playSound('explosion', 'D2', '4n'); 
-        spawnParticles(this.x, this.y, 25, this.config.color, 'explosion'); 
-        gameState.explosionFlashTimer = 10; 
+        playSound('explosion', 'D2', '4n');
+        spawnParticles(this.x, this.y, 25, this.config.color, 'explosion');
+        gameState.explosionFlashTimer = 10;
 
         this.health = 0;
         gameState.credits += this.config.reward;
@@ -384,14 +394,15 @@ class Enemy {
     }
 
     draw() {
+        if (!ctx) return;
         ctx.save();
-        if (this.type === 'stealth' && this.isStealthed) {
-            ctx.globalAlpha = 0.3; 
+        if (this.type === 'stealth' && this.isStealth) {
+            ctx.globalAlpha = 0.3;
         }
 
         if (this.hitEffectTimer > 0) {
-            ctx.globalAlpha *= (this.hitEffectTimer / 10) * 0.8 + 0.2; 
-            ctx.strokeStyle = '#ffffff'; 
+            ctx.globalAlpha *= (this.hitEffectTimer / 10) * 0.8 + 0.2;
+            ctx.strokeStyle = '#ffffff';
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.arc(this.x, this.y, this.config.size + 3, 0, Math.PI * 2);
@@ -399,15 +410,15 @@ class Enemy {
         }
 
         const enemyGradient = ctx.createRadialGradient(this.x, this.y, this.config.size * 0.3, this.x, this.y, this.config.size);
-        enemyGradient.addColorStop(0, '#ffffff'); 
+        enemyGradient.addColorStop(0, '#ffffff');
         enemyGradient.addColorStop(0.8, this.config.color);
-        enemyGradient.addColorStop(1, this.config.color.substring(0, 7) + '88'); 
+        enemyGradient.addColorStop(1, this.config.color.substring(0, 7) + '88');
         ctx.fillStyle = enemyGradient;
 
         ctx.beginPath();
         switch (this.type) {
             case 'basic':
-                ctx.arc(this.x, this.y, this.config.size, 0, Math.PI * 2); 
+                ctx.arc(this.x, this.y, this.config.size, 0, Math.PI * 2);
                 break;
             case 'fast':
                 ctx.moveTo(this.x, this.y - this.config.size);
@@ -428,15 +439,15 @@ class Enemy {
                 const points = 5;
                 for (let i = 0; i < points * 2; i++) {
                     const radius = i % 2 === 0 ? outerRadius : innerRadius;
-                    const angle = (Math.PI / points) * i - Math.PI / 2; 
+                    const angle = (Math.PI / points) * i - Math.PI / 2;
                     ctx.lineTo(this.x + radius * Math.cos(angle), this.y + radius * Math.sin(angle));
                 }
                 ctx.closePath();
                 break;
             case 'healer':
-                ctx.arc(this.x, this.y, this.config.size, 0, Math.PI * 2); 
+                ctx.arc(this.x, this.y, this.config.size, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.strokeStyle = '#00ff00'; 
+                ctx.strokeStyle = '#00ff00';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.moveTo(this.x - this.config.size * 0.6, this.y);
@@ -446,9 +457,9 @@ class Enemy {
                 ctx.stroke();
                 break;
             case 'armored':
-                ctx.arc(this.x, this.y, this.config.size, 0, Math.PI * 2); 
+                ctx.arc(this.x, this.y, this.config.size, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.strokeStyle = '#ffffff'; 
+                ctx.strokeStyle = '#ffffff';
                 ctx.lineWidth = 3;
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.config.size * 1.2, 0, Math.PI * 2);
@@ -457,7 +468,7 @@ class Enemy {
             case 'kamikaze':
                 const spikeCount = 8;
                 const spikeLength = this.config.size * 0.4;
-                ctx.arc(this.x, this.y, this.config.size, 0, Math.PI * 2); 
+                ctx.arc(this.x, this.y, this.config.size, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.strokeStyle = '#ff0000';
                 ctx.lineWidth = 1;
@@ -470,7 +481,7 @@ class Enemy {
                 }
                 break;
             case 'stealth':
-                ctx.arc(this.x, this.y, this.config.size, 0, Math.PI * 2); 
+                ctx.arc(this.x, this.y, this.config.size, 0, Math.PI * 2);
                 break;
         }
         ctx.fill();
@@ -480,7 +491,7 @@ class Enemy {
         const barHeight = 4;
         ctx.fillStyle = '#333';
         ctx.fillRect(this.x - barWidth/2, this.y - this.config.size - 8, barWidth, barHeight);
-        ctx.fillStyle = this.health / this.maxHealth > 0.3 ? '#00ff00' : '#ff4444'; 
+        ctx.fillStyle = this.health / this.maxHealth > 0.3 ? '#00ff00' : '#ff4444';
         ctx.fillRect(this.x - barWidth/2, this.y - this.config.size - 8, barWidth * (this.health / this.maxHealth), barHeight);
 
         if (this.slowTimer > 0) {
@@ -491,7 +502,6 @@ class Enemy {
             ctx.stroke();
         }
 
-        // Visual for Healer enemy healing aura
         if (this.type === 'healer' && this.healingCooldown < this.config.healingCooldown * 0.5) {
             ctx.strokeStyle = '#00ff0088';
             ctx.lineWidth = 2;
@@ -507,30 +517,28 @@ class Enemy {
             ctx.arc(this.x, this.y, this.config.size + 2, 0, Math.PI * 2);
             ctx.stroke();
         }
-        ctx.restore(); 
+        ctx.restore();
     }
 }
 
 class Projectile {
-    constructor(x, y, target, tower, damageMultiplier = 1) { 
+    constructor(x, y, target, tower, damageMultiplier = 1) {
         this.x = x;
         this.y = y;
-        this.target = target; 
-        this.tower = tower; 
-        this.config = tower.baseConfig; 
-        this.stats = tower.currentStats; 
-        this.damageMultiplier = damageMultiplier; 
-        // Calculates initial velocity towards target
+        this.target = target;
+        this.tower = tower;
+        this.config = tower.baseConfig;
+        this.stats = tower.currentStats;
+        this.damageMultiplier = damageMultiplier;
         const dx = this.target.x - x;
         const dy = this.target.y - y;
-        const dist = Math.sqrt(dx * dx + dy * dy) || 1; 
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
 
         this.vx = (dx / dist) * this.config.projectileSpeed * gameState.gameSpeed;
         this.vy = (dy / dist) * this.config.projectileSpeed * gameState.gameSpeed;
-        this.life = 150 / gameState.gameSpeed; 
+        this.life = 150 / gameState.gameSpeed;
     }
 
-    // Updates projectile position and checks for hits
     update() {
         if (this.config.splash && this.target && this.target.health > 0) {
              const dx = this.target.x - this.x;
@@ -544,18 +552,16 @@ class Projectile {
         this.y += this.vy;
         this.life--;
 
-        // Check for collision with enemies
         for (let i = gameState.enemies.length - 1; i >= 0; i--) {
             const enemy = gameState.enemies[i];
-            // Only hit if enemy is not stealthed, or if it's not a stealth enemy type
-            if (enemy.isStealthed && enemy.type === 'stealth') {
-                continue; // Cannot hit stealthed enemies
+            if (enemy.isStealth && enemy.type === 'stealth') { // Use isStealth
+                continue;
             }
             const dist = Math.sqrt((enemy.x - this.x) ** 2 + (enemy.y - this.y) ** 2);
 
-            if (dist < enemy.config.size + 3) { 
+            if (dist < enemy.config.size + 3) {
                 this.hit(enemy, i);
-                return false; 
+                return false;
             }
         }
         return this.life > 0 && this.x > -20 && this.x < canvas.width + 20 && this.y > -20 && this.y < canvas.height + 20;
@@ -575,7 +581,7 @@ class Projectile {
         if (this.config.splash) {
             playSound('explosion');
             spawnParticles(this.x, this.y, 15, this.config.projectileColor, 'explosion');
-            gameState.explosionFlashTimer = 10; 
+            gameState.explosionFlashTimer = 10;
             for (let i = gameState.enemies.length - 1; i >= 0; i--) {
                 const otherEnemy = gameState.enemies[i];
                 if (otherEnemy.id !== enemy.id) {
@@ -595,6 +601,7 @@ class Projectile {
     }
 
     draw() {
+        if (!ctx) return;
         ctx.fillStyle = this.config.projectileColor;
         ctx.strokeStyle = this.config.projectileColor;
         ctx.lineWidth = 2;
@@ -602,7 +609,7 @@ class Projectile {
         switch (this.config.name) {
             case "⚡ Laser Turret":
                 ctx.beginPath();
-                ctx.moveTo(this.x - this.vx * 5, this.y - this.vy * 5); 
+                ctx.moveTo(this.x - this.vx * 5, this.y - this.vy * 5);
                 ctx.lineTo(this.x, this.y);
                 ctx.stroke();
                 ctx.shadowBlur = 10;
@@ -610,14 +617,14 @@ class Projectile {
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.shadowBlur = 0; 
+                ctx.shadowBlur = 0;
                 break;
             case "🚀 Missile Launcher":
                 ctx.beginPath();
                 ctx.save();
                 ctx.translate(this.x, this.y);
                 ctx.rotate(Math.atan2(this.vy, this.vx));
-                ctx.fillRect(-5, -2, 10, 4); 
+                ctx.fillRect(-5, -2, 10, 4);
                 ctx.fillStyle = 'orange';
                 ctx.beginPath();
                 ctx.arc(-5, 0, 3, 0, Math.PI * 2);
@@ -648,7 +655,7 @@ class Projectile {
                 break;
             default:
                 ctx.beginPath();
-                ctx.arc(this.x, this.y, this.config.splash ? 5 : 3, 0, Math.PI * 2); 
+                ctx.arc(this.x, this.y, this.config.splash ? 5 : 3, 0, Math.PI * 2);
                 ctx.fill();
                 break;
         }
@@ -662,11 +669,11 @@ class Particle {
         this.size = Math.random() * size + 1;
         this.color = color;
         this.type = type;
-        const angle = Math.random() * Math.PI * 2; 
-        const speed = Math.random() * (type === 'explosion' ? 6 : 2) + 0.5; 
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * (type === 'explosion' ? 6 : 2) + 0.5;
         this.vx = Math.cos(angle) * speed;
         this.vy = Math.sin(angle) * speed;
-        this.life = type === 'explosion' ? (Math.random() * 60 + 30) : (Math.random() * 20 + 10); 
+        this.life = type === 'explosion' ? (Math.random() * 60 + 30) : (Math.random() * 20 + 10);
         this.opacity = 1;
     }
 
@@ -674,16 +681,17 @@ class Particle {
         this.x += this.vx * gameState.gameSpeed;
         this.y += this.vy * gameState.gameSpeed;
         this.life -= gameState.gameSpeed;
-        this.opacity = Math.max(0, this.life / (this.type === 'explosion' ? 60 : 20)); 
-        if (this.type === 'explosion') this.vy += 0.05 * gameState.gameSpeed; 
+        this.opacity = Math.max(0, this.life / (this.type === 'explosion' ? 60 : 20));
+        if (this.type === 'explosion') this.vy += 0.05 * gameState.gameSpeed;
         return this.life > 0;
     }
 
     draw() {
+        if (!ctx) return;
         ctx.globalAlpha = this.opacity;
         if (this.type === 'explosion') {
             const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
-            gradient.addColorStop(0, '#ffffff'); 
+            gradient.addColorStop(0, '#ffffff');
             gradient.addColorStop(0.5, this.color);
             gradient.addColorStop(1, 'rgba(0,0,0,0)');
             ctx.fillStyle = gradient;
@@ -702,13 +710,13 @@ class Star {
         this.x = x;
         this.y = y;
         this.size = size;
-        this.opacity = Math.random() * 0.8 + 0.2; 
+        this.opacity = Math.random() * 0.8 + 0.2;
         this.speed = speed;
     }
 
     update() {
         this.x -= this.speed * gameState.gameSpeed * 0.1;
-        if (this.x < -this.size) { 
+        if (canvas && this.x < -this.size) {
             this.x = canvas.width + this.size;
             this.y = Math.random() * canvas.height;
             this.opacity = Math.random() * 0.8 + 0.2;
@@ -716,6 +724,7 @@ class Star {
     }
 
     draw() {
+        if (!ctx) return;
         ctx.globalAlpha = this.opacity;
         ctx.fillStyle = 'white';
         ctx.beginPath();
@@ -731,25 +740,26 @@ class Planet {
         this.y = y;
         this.radius = radius;
         this.color = color;
-        this.speed = speed; 
-        this.opacity = Math.random() * 0.2 + 0.05; 
+        this.speed = speed;
+        this.opacity = Math.random() * 0.2 + 0.05;
     }
 
     update() {
-        this.x -= this.speed * gameState.gameSpeed * 0.01; 
-        if (this.x < -this.radius) { 
+        this.x -= this.speed * gameState.gameSpeed * 0.01;
+        if (canvas && this.x < -this.radius) {
             this.x = canvas.width + this.radius + Math.random() * canvas.width;
             this.y = Math.random() * canvas.height;
             this.radius = Math.random() * 20 + 20;
             this.color = `hsl(${Math.random() * 360}, 50%, 40%)`;
-            this.opacity = Math.random() * 0.2 + 0.05; 
+            this.opacity = Math.random() * 0.2 + 0.05;
         }
     }
 
     draw() {
-        ctx.globalAlpha = this.opacity; 
+        if (!ctx) return;
+        ctx.globalAlpha = this.opacity;
         const gradient = ctx.createRadialGradient(this.x - this.radius * 0.3, this.y - this.radius * 0.3, 0, this.x, this.y, this.radius);
-        gradient.addColorStop(0, 'white'); 
+        gradient.addColorStop(0, 'white');
         gradient.addColorStop(0.7, this.color);
         gradient.addColorStop(1, 'black');
         ctx.fillStyle = gradient;
@@ -757,12 +767,12 @@ class Planet {
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.strokeStyle = 'rgba(255,255,255,0.05)'; 
-        ctx.lineWidth = this.radius * 0.05; 
+        ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+        ctx.lineWidth = this.radius * 0.05;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius * 1.2, 0, Math.PI * 2);
         ctx.stroke();
-        ctx.globalAlpha = 1; 
+        ctx.globalAlpha = 1;
     }
 }
 
@@ -772,30 +782,31 @@ class Starship {
         this.y = y;
         this.size = size;
         this.color = color;
-        this.speed = speed; 
+        this.speed = speed;
     }
 
     update() {
-        this.x -= this.speed * gameState.gameSpeed * 0.08; 
-        if (this.x < -this.size * 2) { 
+        this.x -= this.speed * gameState.gameSpeed * 0.08;
+        if (canvas && this.x < -this.size * 2) {
             this.x = canvas.width + this.size * 2 + Math.random() * canvas.width;
             this.y = Math.random() * canvas.height;
-            this.size = Math.random() * 10 + 10; 
+            this.size = Math.random() * 10 + 10;
         }
     }
 
     draw() {
+        if (!ctx) return;
         ctx.fillStyle = this.color;
         ctx.beginPath();
-        ctx.moveTo(this.x, this.y - this.size); 
-        ctx.lineTo(this.x + this.size * 0.8, this.y + this.size * 0.6); 
-        ctx.lineTo(this.x + this.size * 0.4, this.y + this.size * 1.2); 
-        ctx.lineTo(this.x - this.size * 0.4, this.y + this.size * 1.2); 
-        ctx.lineTo(this.x - this.size * 0.8, this.y + this.size * 0.6); 
+        ctx.moveTo(this.x, this.y - this.size);
+        ctx.lineTo(this.x + this.size * 0.8, this.y + this.size * 0.6);
+        ctx.lineTo(this.x + this.size * 0.4, this.y + this.size * 1.2);
+        ctx.lineTo(this.x - this.size * 0.4, this.y + this.size * 1.2);
+        ctx.lineTo(this.x - this.size * 0.8, this.y + this.size * 0.6);
         ctx.closePath();
         ctx.fill();
 
-        ctx.fillStyle = 'rgba(255, 165, 0, 0.7)'; 
+        ctx.fillStyle = 'rgba(255, 165, 0, 0.7)';
         ctx.beginPath();
         ctx.arc(this.x, this.y + this.size * 1.2 + 5, this.size * 0.4, 0, Math.PI * 2);
         ctx.fill();

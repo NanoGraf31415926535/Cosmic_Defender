@@ -5,19 +5,214 @@
 }
 
 body {
-    font-family: 'Courier New', monospace;
-    background: linear-gradient(135deg, #0a0a2e, #16213e, #1a1a3e);
+    font-family: 'Rajdhani', 'Courier New', monospace;
+    background: #050816;
     color: white;
     overflow: hidden;
-    height: 100vh; 
+    height: 100vh;
     display: flex;
     flex-direction: column;
+    position: relative;
 }
+
+.main-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0s linear 0.5s;
+}
+
+.main-menu-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.5s ease;
+}
+
+.main-menu-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #050816;
+}
+
+.nebula {
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    top: -50%;
+    left: -50%;
+    background-image: radial-gradient(ellipse at center, rgba(76, 0, 130, 0.4), rgba(76, 0, 130, 0) 70%),
+                      radial-gradient(ellipse at 20% 30%, rgba(0, 76, 153, 0.3), rgba(0, 76, 153, 0) 60%),
+                      radial-gradient(ellipse at 80% 70%, rgba(139, 0, 139, 0.35), rgba(139, 0, 139, 0) 65%);
+    animation: swirl 120s linear infinite;
+    transform-origin: center center;
+}
+
+@keyframes swirl {
+    0% { transform: rotate(0deg) scale(1); }
+    100% { transform: rotate(360deg) scale(1); }
+}
+
+.galaxies {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.galaxies::before, .galaxies::after {
+    content: '';
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 5px white, 0 0 10px white;
+    animation: shimmer 5s infinite alternate;
+}
+
+.galaxies::before { top: 20%; left: 15%; animation-delay: 1s; }
+.galaxies::after { top: 70%; left: 80%; animation-delay: 3s; }
+
+
+.cosmic-defenders {
+    position: absolute;
+    bottom: 10%;
+    left: 5%;
+    width: 200px;
+    height: 300px;
+    background: linear-gradient(to top, rgba(0, 200, 255, 0.3), transparent 70%);
+    clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+    opacity: 0.6;
+    filter: drop-shadow(0 0 15px rgba(0, 200, 255, 0.5));
+}
+
+
+.star-fortress {
+    position: absolute;
+    bottom: 5%;
+    right: 0%;
+    width: 250px;
+    height: 400px;
+    background: linear-gradient(to top, rgba(200, 0, 0, 0.4), transparent 60%);
+    clip-path: polygon(0% 0%, 60% 0%, 30% 100%, 0% 100%);
+    opacity: 0.5;
+    filter: drop-shadow(0 0 15px rgba(200, 0, 0, 0.4));
+}
+
+.main-menu-panel {
+    position: relative;
+    z-index: 1;
+    background: rgba(10, 25, 47, 0.85);
+    border: 2px solid #00aaff;
+    border-radius: 15px;
+    padding: 30px 40px;
+    width: 450px;
+    max-width: 90%;
+    text-align: center;
+    box-shadow: 0 0 25px rgba(0, 170, 255, 0.4),
+                inset 0 0 10px rgba(0, 170, 255, 0.2);
+    backdrop-filter: blur(5px);
+}
+
+.main-menu-panel::before, .main-menu-panel::after {
+    content: '';
+    position: absolute;
+    width: 90%;
+    height: 90%;
+    border-radius: 12px;
+    z-index: -1;
+    opacity: 0.2;
+}
+.main-menu-panel::before {
+    top: 5%;
+    left: 5%;
+    border: 1px dashed #00aaff;
+    animation: pulse-border 4s infinite linear;
+}
+
+@keyframes pulse-border {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 0.6; }
+}
+
+.main-menu-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2.5em;
+    color: #ffffff;
+    text-shadow: 0 0 5px #00ccff, 0 0 10px #00ccff, 0 0 15px #00ccff, 0 0 20px #00aaff;
+    margin-bottom: 30px;
+    letter-spacing: 2px;
+    font-weight: 700;
+}
+
+.main-menu-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.main-menu-button {
+    background: linear-gradient(145deg, #0d3b66, #0a2c4e);
+    color: #e0f7fa;
+    border: 2px solid transparent;
+    border-image: linear-gradient(to right, #00ccff, #0077aa) 1;
+    padding: 12px 20px;
+    font-size: 1.1em;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.main-menu-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 204, 255, 0.3), transparent);
+    transition: left 0.4s ease;
+}
+
+.main-menu-button:hover::before {
+    left: 100%;
+}
+
+.main-menu-button:hover {
+    background: linear-gradient(145deg, #1a4c7c, #10365a);
+    color: #ffffff;
+    border-image: linear-gradient(to right, #33ddff, #00aaff) 1;
+    box-shadow: 0 0 15px rgba(0, 204, 255, 0.5), 0 0 5px rgba(0,204,255,0.3) inset;
+    transform: translateY(-2px);
+}
+
+.main-menu-button:active {
+    transform: translateY(0px);
+    box-shadow: 0 0 5px rgba(0, 204, 255, 0.3);
+}
+
 
 #gameUI {
     display: flex;
     flex-direction: column;
-    flex-grow: 1; 
+    flex-grow: 1;
 }
 
 .game-header {
@@ -28,7 +223,7 @@ body {
     align-items: center;
     border-bottom: 2px solid #00ffff;
     height: 60px;
-    flex-shrink: 0; 
+    flex-shrink: 0;
 }
 
 .stats {
@@ -53,25 +248,26 @@ body {
 .health-icon { background: #ff4444; }
 .credits-icon { background: #ffdd44; }
 .wave-icon { background: #44ff44; }
+.mission-icon { background: #9900ff; }
 
 #waveTimer {
     font-size: 13px;
     color: #00ffff;
-    min-width: 200px; 
+    min-width: 200px;
     text-align: right;
 }
 
 .game-container {
     display: flex;
-    flex-grow: 1; 
-    overflow: hidden; 
+    flex-grow: 1;
+    overflow: hidden;
 }
 
 .game-canvas {
-    flex: 1; 
+    flex: 1;
     background: radial-gradient(circle at 30% 20%, rgba(0, 255, 255, 0.05), transparent 50%),
                 radial-gradient(circle at 70% 80%, rgba(255, 0, 255, 0.05), transparent 50%),
-                #070725; 
+                #070725;
     position: relative;
     cursor: crosshair;
 }
@@ -97,6 +293,7 @@ canvas {
     color: #00ffff;
     margin-bottom: 6px;
     text-shadow: 0 0 5px #00ffff;
+    font-family: 'Orbitron', sans-serif;
 }
 
 .tower-shop, .game-controls, .tower-info-panel {
@@ -105,14 +302,14 @@ canvas {
     gap: 8px;
 }
 
-.tower-button, .control-button, .upgrade-button, .action-button {
+.tower-button, .control-button, .upgrade-button, .action-button, .modal-button {
     background: linear-gradient(135deg, #1a1a3e, #2a2a5e);
     border: 1px solid #00ffff;
     color: white;
     padding: 8px 10px;
     cursor: pointer;
     border-radius: 5px;
-    font-family: inherit;
+    font-family: 'Rajdhani', sans-serif;
     font-size: 11px;
     transition: all 0.2s ease;
     text-align: left;
@@ -121,7 +318,8 @@ canvas {
 .tower-button:hover:not(:disabled),
 .control-button:hover:not(:disabled),
 .upgrade-button:hover:not(:disabled),
-.action-button:hover:not(:disabled) {
+.action-button:hover:not(:disabled),
+.modal-button:hover {
     border-color: #ffff00;
     background: linear-gradient(135deg, #2a2a5e, #3a3a7e);
     transform: translateY(-1px);
@@ -169,7 +367,8 @@ canvas {
     line-height: 1.3;
     border: 1px solid #00ffff33;
 }
-.menu-overlay, .modal-overlay {
+
+.modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -184,13 +383,13 @@ canvas {
     visibility: hidden;
     transition: opacity 0.3s ease, visibility 0s linear 0.3s;
 }
-.menu-overlay.active, .modal-overlay.active {
+.modal-overlay.active {
     opacity: 1;
     visibility: visible;
     transition: opacity 0.3s ease;
 }
 
-.menu, .modal-content {
+.modal-content {
     background: linear-gradient(145deg, #16213e, #1f2c4a);
     border: 2px solid #00ffff;
     border-radius: 12px;
@@ -201,15 +400,16 @@ canvas {
     transform: scale(0.9);
     transition: transform 0.3s ease;
 }
-.menu-overlay.active .menu, .modal-overlay.active .modal-content {
+.modal-overlay.active .modal-content {
     transform: scale(1);
 }
 
-.menu h1, .modal-content h1 {
+.modal-content h1 {
     color: #00ffff;
     margin-bottom: 12px;
     font-size: 1.8em;
     text-shadow: 0 0 15px #00ffff;
+    font-family: 'Orbitron', sans-serif;
 }
  .modal-content h2 {
     color: #ffff00;
@@ -217,14 +417,14 @@ canvas {
     font-size: 1.5em;
 }
 
-.menu p, .modal-content p {
+.modal-content p {
     margin-bottom: 18px;
     line-height: 1.5;
     color: #bbb;
     font-size: 13px;
 }
 
-.menu-button, .modal-button {
+.modal-button {
     background: linear-gradient(135deg, #00ffff, #0099cc);
     border: none;
     color: #0a0a2e;
@@ -232,14 +432,14 @@ canvas {
     margin: 6px;
     cursor: pointer;
     border-radius: 5px;
-    font-family: inherit;
+    font-family: 'Rajdhani', sans-serif;
     font-weight: bold;
     font-size: 13px;
     transition: all 0.2s ease;
     text-transform: uppercase;
 }
 
-.menu-button:hover, .modal-button:hover {
+.modal-button:hover {
     background: linear-gradient(135deg, #33ffff, #00ccff);
     transform: scale(1.03);
     box-shadow: 0 0 15px #00ffff88;
@@ -263,13 +463,13 @@ canvas {
     text-align: center;
 }
 .ability-button {
-    background: linear-gradient(135deg, #8844ff, #6600cc); 
+    background: linear-gradient(135deg, #8844ff, #6600cc);
     border: 1px solid #cc00ff;
     color: white;
     padding: 8px 10px;
     cursor: pointer;
     border-radius: 5px;
-    font-family: inherit;
+    font-family: 'Rajdhani', sans-serif;
     font-size: 11px;
     transition: all 0.2s ease;
     text-align: left;
@@ -288,3 +488,171 @@ canvas {
 }
 .ability-name { font-weight: bold; color: #cc00ff; margin-bottom: 2px; }
 .ability-cost, .ability-cooldown { color: #ffdd44; font-size: 10px; }
+
+.hidden {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+@keyframes shimmer {
+    0% { opacity: 0.3; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.2); }
+    100% { opacity: 0.3; transform: scale(0.8); }
+}
+
+.galaxies::before {
+    box-shadow: 0 0 5px white, 0 0 10px white,
+                150px 200px 3px white, 150px 200px 8px white,
+                -100px 50px 2px white, -100px 50px 6px white,
+                300px -150px 2px white, 300px -150px 7px white;
+}
+.galaxies::after {
+    box-shadow: 0 0 5px white, 0 0 10px white,
+                -200px -100px 3px white, -200px -100px 8px white,
+                50px -250px 2px white, 50px -250px 6px white,
+                -300px 100px 2px white, -300px 100px 7px white;
+}
+
+.key-hint {
+    color: #88ddff;
+    font-size: 0.8em;
+    margin-left: 5px;
+}
+
+/* Mission selection and settings styles */
+.mission-select-content {
+    max-width: 800px;
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.mission-map-container {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    justify-content: center;
+    align-items: flex-start;
+    /* Enhanced background for the map container */
+    background: radial-gradient(circle at 50% 50%, rgba(10, 10, 46, 0.9), rgba(5, 5, 20, 0.95) 80%),
+                url('data:image/svg+xml;utf8,<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="smallGrid" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M 8 0 L 0 0 0 8" fill="none" stroke="rgba(0,255,255,0.05)" stroke-width="0.5"/></pattern><pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse"><rect width="80" height="80" fill="url(%23smallGrid)"/><path d="M 80 0 L 0 0 0 80" fill="none" stroke="rgba(0,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3), inset 0 0 10px rgba(0, 255, 255, 0.1);
+    padding: 15px; /* Added padding to give space around canvas and panel */
+}
+
+#missionMapCanvas {
+    background: #0a0a2e; /* Base background, but the JS draws over this */
+    border: 2px solid #00ffff;
+    border-radius: 10px;
+    flex-grow: 1; /* Allow canvas to grow */
+    min-width: 300px; /* Minimum width for canvas */
+    height: 400px; /* Fixed height for the map */
+    cursor: pointer;
+    /* Pulsating border animation for the canvas */
+    animation: glow-border 2s infinite alternate;
+}
+
+@keyframes glow-border {
+    0% { border-color: #00ffff; box-shadow: 0 0 10px #00ffff; }
+    100% { border-color: #33aaff; box-shadow: 0 0 20px #33aaff, 0 0 30px #00ffff88; }
+}
+
+
+.mission-details-panel {
+    background: linear-gradient(145deg, #0d1a33, #152542); /* More sci-fi gradient */
+    border: 1px solid #00aaff;
+    border-radius: 10px; /* Slightly more rounded */
+    padding: 15px;
+    text-align: left;
+    width: 300px; /* Fixed width for details panel */
+    flex-shrink: 0; /* Prevent shrinking */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 0 15px rgba(0, 170, 255, 0.4); /* Added subtle shadow */
+}
+
+.mission-details-panel h2 {
+    color: #00ffff;
+    font-size: 1.4em;
+    margin-bottom: 5px;
+    text-shadow: 0 0 8px #00ffff; /* Enhanced text shadow */
+}
+
+.mission-details-panel p {
+    font-size: 0.9em;
+    color: #ccc;
+    line-height: 1.4;
+}
+
+.mission-details-panel #missionDetailsStory {
+    font-style: italic;
+    color: #aaffaa;
+    margin-top: 10px;
+    border-top: 1px dashed #00ff0055;
+    padding-top: 10px;
+}
+
+#missionDetailsStartBtn {
+    margin-top: auto; /* Push button to bottom */
+    width: 100%;
+    background: linear-gradient(135deg, #00cc66, #009944); /* Greenish gradient for start button */
+    color: #e0f7fa;
+    border: 1px solid #00ff00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+#missionDetailsStartBtn:hover {
+    background: linear-gradient(135deg, #00e673, #00b359);
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+}
+
+.settings-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.settings-content p {
+    font-size: 1.1em;
+    color: #e0f7fa;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.settings-content input[type="range"] {
+    width: 200px;
+    -webkit-appearance: none; 
+    appearance: none;       
+    height: 8px;
+    background: #00aaff;
+    border-radius: 5px;
+    outline: none;
+    opacity: 0.7;
+    transition: opacity .2s;
+}
+
+.settings-content input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; 
+    appearance: none;      
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #00ffff;
+    cursor: pointer;
+    box-shadow: 0 0 5px #00ffff;
+}
+
+.settings-content input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #00ffff;
+    cursor: pointer;
+    box-shadow: 0 0 5px #00ffff;
+}
